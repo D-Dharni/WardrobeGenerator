@@ -1,0 +1,15 @@
+{
+  "id" : "item_005",
+  "imagePath" : "/Users/devendharni/IdeaProjects/WardrobeGenerator/wardrobe/Screenshot 2026-05-08 at 6.06.04 PM.png",
+  "type" : "TOP",
+  "subType" : "t-shirt",
+  "formality" : "CASUAL_EVERYDAY",
+  "primaryColor" : "lavender",
+  "accentColors" : [ "light gray", "sage" ],
+  "colorFamily" : "cool",
+  "pattern" : "SOLID",
+  "styles" : [ "streetwear" ],
+  "material" : "cotton",
+  "fit" : "oversized",
+  "suitableOccasions" : [ "everyday wear", "loungewear" ]
+}

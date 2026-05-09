@@ -1,0 +1,15 @@
+{
+  "id" : "item_006",
+  "imagePath" : "/Users/devendharni/IdeaProjects/WardrobeGenerator/wardrobe/Screenshot 2026-05-08 at 3.39.42 PM.png",
+  "type" : "BOTTOM",
+  "subType" : "shorts",
+  "formality" : "ATHLEISURE_SPORTSWEAR",
+  "primaryColor" : "dark navy",
+  "accentColors" : [ "lavender", "black", "sage", "gray" ],
+  "colorFamily" : "cool",
+  "pattern" : "SOLID",
+  "styles" : [ "streetwear", "athletic" ],
+  "material" : "wool",
+  "fit" : "oversized",
+  "suitableOccasions" : [ "loungewear" ]
+}

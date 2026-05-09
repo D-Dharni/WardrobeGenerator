@@ -1,0 +1,15 @@
+{
+  "id" : "item_002",
+  "imagePath" : "/Users/devendharni/Downloads/outfit2.jpg",
+  "type" : "BOTTOM",
+  "subType" : "trousers",
+  "formality" : "ATHLEISURE_SPORTSWEAR",
+  "primaryColor" : "dark navy",
+  "accentColors" : [ "lavender", "black", "sage", "gray" ],
+  "colorFamily" : "cool",
+  "pattern" : "CHECKERED",
+  "styles" : [ "streetwear", "athletic" ],
+  "material" : "wool",
+  "fit" : "relaxed fit",
+  "suitableOccasions" : [ "loungewear" ]
+}

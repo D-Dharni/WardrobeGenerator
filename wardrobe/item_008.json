@@ -1,0 +1,15 @@
+{
+  "id" : "item_008",
+  "imagePath" : "/Users/devendharni/IdeaProjects/WardrobeGenerator/wardrobe/Screenshot 2026-05-08 at 6.06.12 PM.png",
+  "type" : "OUTERWEAR",
+  "subType" : "hoodie",
+  "formality" : "CASUAL_EVERYDAY",
+  "primaryColor" : "rust",
+  "accentColors" : [ "brown", "dark gray" ],
+  "colorFamily" : "warm",
+  "pattern" : "SOLID",
+  "styles" : [ "streetwear" ],
+  "material" : "polyester",
+  "fit" : "oversized",
+  "suitableOccasions" : [ "everyday wear", "loungewear" ]
+}

@@ -1,0 +1,15 @@
+{
+  "id" : "item_004",
+  "imagePath" : "/Users/devendharni/IdeaProjects/WardrobeGenerator/wardrobe/Screenshot 2026-05-08 at 6.05.37 PM.png",
+  "type" : "BOTTOM",
+  "subType" : "shorts",
+  "formality" : "CASUAL_EVERYDAY",
+  "primaryColor" : "sage",
+  "accentColors" : [ "gray", "charcoal", "lavender" ],
+  "colorFamily" : "cool",
+  "pattern" : "SOLID",
+  "styles" : [ "streetwear", "athletic", "casual" ],
+  "material" : "polyester",
+  "fit" : "oversized",
+  "suitableOccasions" : [ "everyday wear", "loungewear" ]
+}

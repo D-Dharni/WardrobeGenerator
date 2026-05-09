@@ -1,0 +1,15 @@
+{
+  "id" : "item_002",
+  "imagePath" : "/Users/devendharni/IdeaProjects/WardrobeGenerator/wardrobe/Screenshot 2026-05-08 at 3.39.26 PM.png",
+  "type" : "OUTERWEAR",
+  "subType" : "hoodie",
+  "formality" : "CASUAL_EVERYDAY",
+  "primaryColor" : "dark navy",
+  "accentColors" : [ "lavender", "gray" ],
+  "colorFamily" : "cool",
+  "pattern" : "SOLID",
+  "styles" : [ "streetwear" ],
+  "material" : "denim",
+  "fit" : "oversized",
+  "suitableOccasions" : [ "everyday wear", "loungewear" ]
+}

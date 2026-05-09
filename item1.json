@@ -1,0 +1,15 @@
+{
+  "id" : "item_001",
+  "imagePath" : "/Users/devendharni/Downloads/outfit1.jpg",
+  "type" : "OUTERWEAR",
+  "subType" : "hoodie",
+  "formality" : "CASUAL_EVERYDAY",
+  "primaryColor" : "lavender",
+  "accentColors" : [ "dark navy", "gray" ],
+  "colorFamily" : "cool",
+  "pattern" : "SOLID",
+  "styles" : [ "streetwear" ],
+  "material" : "denim",
+  "fit" : "oversized",
+  "suitableOccasions" : [ "everyday wear", "loungewear" ]
+}

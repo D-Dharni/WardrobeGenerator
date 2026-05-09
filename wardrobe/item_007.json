@@ -1,0 +1,15 @@
+{
+  "id" : "item_007",
+  "imagePath" : "/Users/devendharni/IdeaProjects/WardrobeGenerator/wardrobe/Screenshot 2026-05-08 at 6.05.23 PM.png",
+  "type" : "TOP",
+  "subType" : "t-shirt",
+  "formality" : "CASUAL_EVERYDAY",
+  "primaryColor" : "gray",
+  "accentColors" : [ "charcoal" ],
+  "colorFamily" : "neutral",
+  "pattern" : "SOLID",
+  "styles" : [ "streetwear" ],
+  "material" : "cotton",
+  "fit" : "oversized",
+  "suitableOccasions" : [ "everyday wear", "loungewear" ]
+}

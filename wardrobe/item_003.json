@@ -1,0 +1,15 @@
+{
+  "id" : "item_003",
+  "imagePath" : "/Users/devendharni/IdeaProjects/WardrobeGenerator/wardrobe/Screenshot 2026-05-08 at 6.04.52 PM.png",
+  "type" : "BOTTOM",
+  "subType" : "shorts",
+  "formality" : "CASUAL_EVERYDAY",
+  "primaryColor" : "sage",
+  "accentColors" : [ "gray" ],
+  "colorFamily" : "cool",
+  "pattern" : "SOLID",
+  "styles" : [ "streetwear", "casual" ],
+  "material" : "denim",
+  "fit" : "relaxed fit",
+  "suitableOccasions" : [ "everyday wear" ]
+}
