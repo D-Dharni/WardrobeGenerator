@@ -1,5 +1,27 @@
-This project takes in photos of clothing objects and turns those clothing objects into a
-lookbook with the top three outfits. It does this by sending the clothing item into an AI
-pipeline to extract the details, turning that information into clothing objects, using a
-compatibility scoring algorithm to compare the two objects, and uses graph traversal to
-try and find the best possible outfits.
+#WardrobeGenerator
+
+## Overview
+WardrobeGenerator is an AI-powered outfit recommendation system that analyzes a wardrobe of clothing items and generates the top 3 compatible outfit combinations using computer vision, machine learning, and graph theory.
+
+## How It Works
+1. Drop clothing item photos into the `wardrobe/` folder
+2. Run the application — a desktop window opens and the AI pipeline begins automatically
+3. Each item is analyzed and classified by the AI
+4. A compatibility graph is built and traversed to find the best outfit combinations
+5. The top 3 outfits are displayed with the actual clothing photos
+
+## Tech Stack
+- **Java** — backend logic, compatibility scoring, graph traversal, JavaFX desktop UI
+- **Python** — AI pipeline (YOLO, Claude API, marqo-fashionSigLIP)
+- **Claude API** — clothing classification and color extraction
+- **YOLO** — clothing detection and cropping
+- **marqo-fashionSigLIP** — formality, style, and occasion analysis
+
+## Algorithms and Data Structures
+- **Weighted Graph + Greedy Traversal** — clothing items are nodes, compatibility scores are edges. A greedy algorithm finds the highest scoring interconnected outfit components
+- **Hash Tables** — used extensively in the compatibility scorer for O(1) lookup of type, pattern, fit, and material compatibility matrices
+- **K-Means Clustering** — used in early color extraction (now replaced by Claude API)
+- **Jaccard Similarity** — measures style and occasion overlap between items
+
+## Something New
+This project introduced multimodal AI — combining image and text understanding using CLIP-based models and the Claude API to analyze clothing from photos and extract structured attributes.
