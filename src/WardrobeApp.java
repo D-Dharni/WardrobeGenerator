@@ -1,6 +1,7 @@
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -33,17 +34,15 @@ public class WardrobeApp extends Application {
     private static final String CREAM = "#F5E6D3";
     private static final String CARD_BG = "#FFFFFF";
 
-    // Hardcode the outfits for now
-    private static final List<String[]> TOP_OUTFITS = Arrays.asList(
-            new String[]{"item_010", "item_007", "item_004"},
-            new String[]{"item_009", "item_007", "item_004"},
-            new String[]{"item_002", "item_007", "item_004"}
-    );
-    private static final double[] OUTFIT_SCORES = {85.9, 85.7, 85.4};
+    // Set to true to force re-analysis of all items, false to use cached JSON
+    private static final boolean FORCE_REANALYZE = false;
 
     // Store all clothing items by ID and create JSON reader
     private Map<String, JsonNode> itemMap = new HashMap<>();
     private ObjectMapper mapper = new ObjectMapper();
+
+    // Store the outfits section so we can update it from the background thread
+    private VBox outfitsSection;
 
     // GUI entry point here
     @Override
@@ -69,14 +68,16 @@ public class WardrobeApp extends Application {
         root.getChildren().add(header);
 
         // 16 is the gap in pixels between each child element and has basic padding
-        VBox outfitsSection = new VBox(16);
+        outfitsSection = new VBox(16);
         outfitsSection.setPadding(new Insets(16, 20, 24, 20));
 
-        // Loops through all three outfits and builds a card for each
-        for (int i = 0; i < TOP_OUTFITS.size(); i++) {
-            VBox outfitCard = buildOutfitCard(TOP_OUTFITS.get(i), OUTFIT_SCORES[i], i);
-            outfitsSection.getChildren().add(outfitCard);
-        }
+        // Show a loading message while the pipeline runs in the background
+        Label loadingLabel = new Label("Analyzing your wardrobe...");
+        loadingLabel.setFont(Font.font("System", FontWeight.MEDIUM, 16));
+        loadingLabel.setTextFill(Color.web(CREAM));
+        loadingLabel.setPadding(new Insets(40, 0, 0, 0));
+        outfitsSection.setAlignment(Pos.TOP_CENTER);
+        outfitsSection.getChildren().add(loadingLabel);
 
         // Wraps the outfit section to make it scrollable
         ScrollPane scroll = new ScrollPane(outfitsSection);
@@ -86,7 +87,7 @@ public class WardrobeApp extends Application {
         scroll.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
         scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
 
-        // Add the scroll plane to the root
+        // Add the scroll pane to the root
         root.getChildren().add(scroll);
         VBox.setVgrow(scroll, Priority.ALWAYS);
 
@@ -95,6 +96,245 @@ public class WardrobeApp extends Application {
         stage.setTitle("Wardrobe Generator");
         stage.setScene(scene);
         stage.show();
+
+        // Run the AI pipeline on a background thread so the window stays responsive
+        runPipelineInBackground();
+    }
+
+    // Runs the full AI pipeline on a separate thread so the UI doesn't freeze
+    private void runPipelineInBackground() {
+        // Thread is like a separate worker that runs code independently from the main UI thread
+        Thread pipelineThread = new Thread(() -> {
+            try {
+                // Create the pipeline objects
+                ClothingAnalyzer analyzer = new ClothingAnalyzer();
+                CompatibilityScorer scorer = new CompatibilityScorer();
+                OutfitGenerator generator = new OutfitGenerator(scorer);
+
+                // Scan the wardrobe folder for all image files
+                File wardrobeFolder = new File(WARDROBE_PATH);
+                File[] imageFiles = wardrobeFolder.listFiles((dir, name) ->
+                        name.toLowerCase().endsWith(".jpg") ||
+                                name.toLowerCase().endsWith(".jpeg") ||
+                                name.toLowerCase().endsWith(".png") &&
+                                        !name.endsWith(".json"));
+
+                if (imageFiles == null || imageFiles.length == 0) {
+                    // Platform.runLater schedules this UI update on the JavaFX thread
+                    Platform.runLater(() -> showError("No images found in wardrobe folder."));
+                    return;
+                }
+
+                // Analyze each image and build the wardrobe list
+                List<ClothingItem> wardrobe = new ArrayList<>();
+                for (int i = 0; i < imageFiles.length; i++) {
+                    final int current = i + 1;
+                    final int total = imageFiles.length;
+                    final String imageName = imageFiles[i].getName();
+
+                    String itemId = "item_" + String.format("%03d", i + 1);
+                    String jsonPath = WARDROBE_PATH + itemId + ".json";
+                    File jsonFile = new File(jsonPath);
+
+                    ClothingItem item;
+
+                    // Skip analysis if JSON already exists — saves API costs
+                    if (jsonFile.exists() && !FORCE_REANALYZE) {
+                        Platform.runLater(() -> updateLoadingMessage(
+                                "Loading " + current + " of " + total + ": " + imageName));
+                        item = loadItemFromJson(jsonFile, itemId, imageFiles[i].getAbsolutePath());
+                    } else {
+                        Platform.runLater(() -> updateLoadingMessage(
+                                "Analyzing " + current + " of " + total + ": " + imageName));
+                        item = analyzer.analyze(imageFiles[i].getAbsolutePath(), itemId);
+                        analyzer.saveToJson(item, jsonPath);
+                    }
+
+                    wardrobe.add(item);
+                }
+
+                // Reload itemMap now that all JSON files are saved
+                Platform.runLater(() -> {
+                    try {
+                        loadItems();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
+
+                // Update loading message while generating outfits
+                Platform.runLater(() -> updateLoadingMessage("Generating outfits..."));
+
+                // Run the graph traversal to find top outfits
+                List<OutfitGenerator.Outfit> topOutfits = generator.generateTopOutfits(wardrobe);
+
+                // Hand the results back to the JavaFX thread to update the UI
+                Platform.runLater(() -> displayOutfits(topOutfits));
+
+            } catch (Exception e) {
+                // If anything goes wrong show an error message on screen
+                Platform.runLater(() -> showError("Pipeline error: " + e.getMessage()));
+                e.printStackTrace();
+            }
+        });
+
+        // Mark as daemon so it shuts down when the window closes
+        pipelineThread.setDaemon(true);
+        pipelineThread.start();
+    }
+
+    // Loads a ClothingItem from an existing JSON file instead of re-running the pipeline
+    private ClothingItem loadItemFromJson(File jsonFile, String itemId, String imagePath) {
+        try {
+            JsonNode node = mapper.readTree(jsonFile);
+            ClothingItem item = new ClothingItem(itemId, imagePath);
+
+            // Parse type
+            String type = node.get("type").asText();
+            item.setType(parseType(type));
+
+            // Parse subtype, material, fit
+            item.setSubType(node.get("subType").asText());
+            item.setMaterial(node.get("material").asText());
+            item.setFit(node.get("fit").asText());
+
+            // Parse pattern
+            String pattern = node.get("pattern").asText();
+            item.setPattern(parsePattern(pattern));
+
+            // Parse formality
+            String formality = node.get("formality").asText();
+            item.setFormality(parseFormality(formality));
+
+            // Parse colors
+            item.setPrimaryColor(node.get("primaryColor").asText());
+            item.setColorFamily(node.get("colorFamily").asText());
+
+            // Parse accent colors list
+            List<String> accents = new ArrayList<>();
+            if (node.get("accentColors") != null) {
+                for (JsonNode accent : node.get("accentColors")) {
+                    accents.add(accent.asText());
+                }
+            }
+            item.setAccentColors(accents);
+
+            // Parse styles list
+            List<String> styles = new ArrayList<>();
+            if (node.get("styles") != null) {
+                for (JsonNode style : node.get("styles")) {
+                    styles.add(style.asText());
+                }
+            }
+            item.setStyles(styles);
+
+            // Parse occasions list
+            List<String> occasions = new ArrayList<>();
+            if (node.get("suitableOccasions") != null) {
+                for (JsonNode occ : node.get("suitableOccasions")) {
+                    occasions.add(occ.asText());
+                }
+            }
+            item.setSuitableOccasions(occasions);
+
+            return item;
+        } catch (Exception e) {
+            System.out.println("Error loading JSON for " + itemId + ": " + e.getMessage());
+            return new ClothingItem(itemId, imagePath);
+        }
+    }
+
+    // Function that parses through the type of clothing and returns the matching enum
+    private ClothingType parseType(String raw) {
+        // Convert to lowercase and remove whitespace before comparing
+        switch (raw.toLowerCase().trim()) {
+            // Check the string against each case and return the matching enum value
+            case "top": return ClothingType.TOP;
+            case "bottom": return ClothingType.BOTTOM;
+            case "dress": return ClothingType.DRESS;
+            case "outerwear": return ClothingType.OUTERWEAR;
+            case "shoes": return ClothingType.SHOES;
+            case "accessory": return ClothingType.ACCESSORY;
+
+            // If nothing matches, return top as a safe case
+            default: return ClothingType.TOP;
+        }
+    }
+
+    // Same pattern as parseType but with the formality
+    private Formality parseFormality(String raw) {
+        switch (raw.toLowerCase().trim()) {
+            case "casual everyday": return Formality.CASUAL_EVERYDAY;
+            case "smart casual": return Formality.SMART_CASUAL;
+            case "business casual": return Formality.BUSINESS_CASUAL;
+            case "formal": return Formality.FORMAL;
+            case "athleisure sportswear": return Formality.ATHLEISURE_SPORTSWEAR;
+            default: return Formality.CASUAL_EVERYDAY;
+        }
+    }
+
+    // Same pattern as parseType but with the pattern
+    private Pattern parsePattern(String raw) {
+        switch (raw.toLowerCase().trim()) {
+            case "solid": return Pattern.SOLID;
+            case "striped": return Pattern.STRIPED;
+            case "plaid": return Pattern.PLAID;
+            case "floral": return Pattern.FLORAL;
+            case "checkered": return Pattern.CHECKERED;
+            case "graphic print": return Pattern.GRAPHIC_PRINT;
+            case "abstract": return Pattern.ABSTRACT;
+            default: return Pattern.SOLID;
+        }
+    }
+
+    // Updates the loading message text — called from the background thread via Platform.runLater
+    private void updateLoadingMessage(String message) {
+        outfitsSection.getChildren().clear();
+        Label loadingLabel = new Label(message);
+        loadingLabel.setFont(Font.font("System", FontWeight.MEDIUM, 16));
+        loadingLabel.setTextFill(Color.web(CREAM));
+        loadingLabel.setPadding(new Insets(40, 0, 0, 0));
+        outfitsSection.getChildren().add(loadingLabel);
+    }
+
+    // Shows an error message on screen
+    private void showError(String message) {
+        outfitsSection.getChildren().clear();
+        Label errorLabel = new Label(message);
+        errorLabel.setFont(Font.font("System", 14));
+        errorLabel.setTextFill(Color.web("#FF6B6B"));
+        errorLabel.setPadding(new Insets(40, 0, 0, 0));
+        outfitsSection.getChildren().add(errorLabel);
+    }
+
+    // Builds and displays the outfit cards from the pipeline results
+    private void displayOutfits(List<OutfitGenerator.Outfit> topOutfits) {
+        // Clear the loading message
+        outfitsSection.getChildren().clear();
+        outfitsSection.setAlignment(Pos.TOP_LEFT);
+
+        if (topOutfits.isEmpty()) {
+            showError("No compatible outfits found. Try adding more clothing items.");
+            return;
+        }
+
+        // Build a card for each outfit using the live pipeline results
+        for (int i = 0; i < topOutfits.size(); i++) {
+            OutfitGenerator.Outfit outfit = topOutfits.get(i);
+
+            // Extract item IDs from the outfit
+            List<String> ids = new ArrayList<>();
+            for (ClothingItem item : outfit.items) {
+                ids.add(item.getId());
+            }
+
+            VBox outfitCard = buildOutfitCard(
+                    ids.toArray(new String[0]),
+                    outfit.score,
+                    i
+            );
+            outfitsSection.getChildren().add(outfitCard);
+        }
     }
 
     // Same scanning file pattern as in ClothingAnalyzer here
@@ -103,6 +343,7 @@ public class WardrobeApp extends Application {
         File folder = new File(WARDROBE_PATH);
         File[] jsonFiles = folder.listFiles((dir, name) -> name.endsWith(".json"));
         if (jsonFiles == null) return;
+        itemMap.clear();
         for (File f : jsonFiles) {
             JsonNode node = mapper.readTree(f);
             String id = node.get("id").asText();
@@ -255,7 +496,6 @@ public class WardrobeApp extends Application {
             // Image not found — show empty card
         }
 
-
         // Clips the visible area to a rectangle
         Rectangle clip = new Rectangle(160, 200);
         clip.setArcWidth(12);
@@ -284,7 +524,7 @@ public class WardrobeApp extends Application {
         HBox colorRow = new HBox(5);
         colorRow.setAlignment(Pos.CENTER_LEFT);
 
-        // Creates a small color switch next to the color name
+        // Creates a small color swatch next to the color name
         Rectangle colorDot = new Rectangle(8, 8);
         colorDot.setArcWidth(8);
         colorDot.setArcHeight(8);

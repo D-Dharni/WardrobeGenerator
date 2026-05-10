@@ -13,6 +13,7 @@ public class ClothingAnalyzer {
             "/Users/devendharni/IdeaProjects/WardrobeGenerator/venv/bin/python3";
     private static final String SCRIPTS_PATH =
             "/Users/devendharni/IdeaProjects/WardrobeGenerator/python/";
+    private static final String ANTHROPIC_API_KEY = System.getenv("ANTHROPIC_API_KEY");
 
     // Create an object mapper that the whole class will use
     private final ObjectMapper mapper = new ObjectMapper();
@@ -132,6 +133,7 @@ public class ClothingAnalyzer {
 
         // Merge the output error to capture everything in one go
         pb.redirectErrorStream(true);
+        pb.environment().put("ANTHROPIC_API_KEY", ANTHROPIC_API_KEY);
 
         // Launch the external process, read and discard output, wait until script is done
         Process process = pb.start();
@@ -147,6 +149,7 @@ public class ClothingAnalyzer {
         );
         pb.directory(new File(SCRIPTS_PATH));
         pb.redirectErrorStream(true);
+        pb.environment().put("ANTHROPIC_API_KEY", ANTHROPIC_API_KEY);
         Process process = pb.start();
 
         // Actually read the output instead of discarding it

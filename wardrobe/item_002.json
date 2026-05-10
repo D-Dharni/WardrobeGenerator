@@ -5,11 +5,11 @@
   "subType" : "hoodie",
   "formality" : "CASUAL_EVERYDAY",
   "primaryColor" : "dark navy",
-  "accentColors" : [ "lavender", "gray" ],
+  "accentColors" : [ ],
   "colorFamily" : "cool",
   "pattern" : "SOLID",
   "styles" : [ "streetwear" ],
-  "material" : "denim",
+  "material" : "cotton",
   "fit" : "oversized",
   "suitableOccasions" : [ "everyday wear", "loungewear" ]
 }

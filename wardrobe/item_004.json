@@ -4,12 +4,12 @@
   "type" : "BOTTOM",
   "subType" : "shorts",
   "formality" : "CASUAL_EVERYDAY",
-  "primaryColor" : "sage",
-  "accentColors" : [ "gray", "charcoal", "lavender" ],
-  "colorFamily" : "cool",
+  "primaryColor" : "gray",
+  "accentColors" : [ ],
+  "colorFamily" : "neutral",
   "pattern" : "SOLID",
   "styles" : [ "streetwear", "athletic", "casual" ],
-  "material" : "polyester",
-  "fit" : "oversized",
+  "material" : "cotton",
+  "fit" : "relaxed fit",
   "suitableOccasions" : [ "everyday wear", "loungewear" ]
 }
